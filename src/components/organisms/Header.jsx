@@ -4,6 +4,7 @@ import ApperIcon from "@/components/ApperIcon";
 import Button from "@/components/atoms/Button";
 import { useAuth } from "@/layouts/Root";
 const Header = ({ onMenuToggle, title }) => {
+  const { logout } = useAuth();
   return (
     <header className="bg-white border-b border-slate-200 shadow-soft lg:ml-64">
       <div className="px-4 sm:px-6 lg:px-8">
@@ -50,8 +51,7 @@ const Header = ({ onMenuToggle, title }) => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => {
-                const { logout } = useAuth();
+onClick={() => {
                 logout();
               }}
               className="p-2 hover:bg-slate-100"
