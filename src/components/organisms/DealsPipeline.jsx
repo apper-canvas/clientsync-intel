@@ -103,9 +103,9 @@ const DealsPipeline = () => {
     }
   };
 
-  const getContactName = (contactId) => {
+const getContactName = (contactId) => {
     const contact = contacts.find(c => c.Id === contactId);
-    return contact ? `${contact.firstName} ${contact.lastName}` : "Unknown Contact";
+    return contact ? `${contact.firstName_c} ${contact.lastName_c}` : "Unknown Contact";
   };
 
   const getCompanyName = (companyId) => {
@@ -199,35 +199,35 @@ const DealsPipeline = () => {
                         <CardContent className="p-4">
                           <div className="space-y-3">
                             <div>
-                              <h4 className="font-medium text-slate-900 text-sm mb-1">
-                                {deal.title}
+<h4 className="font-medium text-slate-900 text-sm mb-1">
+                                {deal.title_c}
                               </h4>
                               <p className="text-xs text-slate-500">
-                                {getCompanyName(deal.companyId)}
+                                {deal.companyId_c?.Name || "Unknown Company"}
                               </p>
                             </div>
-
+                            
                             <div className="flex items-center justify-between">
                               <span className="text-lg font-bold gradient-text">
-                                {formatCurrency(deal.value)}
+                                {formatCurrency(deal.value_c)}
                               </span>
                               <Badge 
                                 variant="success" 
                                 size="sm" 
                                 className="text-xs"
                               >
-                                {deal.probability}%
+                                {deal.probability_c}%
                               </Badge>
                             </div>
 
-                            <div className="space-y-1">
+<div className="space-y-1">
                               <div className="flex items-center text-xs text-slate-500">
                                 <ApperIcon name="User" className="h-3 w-3 mr-1" />
-                                {getContactName(deal.contactId)}
+                                {deal.contactId_c?.Name || "Unknown Contact"}
                               </div>
                               <div className="flex items-center text-xs text-slate-500">
                                 <ApperIcon name="Calendar" className="h-3 w-3 mr-1" />
-                                {format(new Date(deal.closeDate), "MMM d, yyyy")}
+                                {deal.closeDate_c ? format(new Date(deal.closeDate_c), "MMM d, yyyy") : "N/A"}
                               </div>
                             </div>
 

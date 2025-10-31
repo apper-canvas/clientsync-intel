@@ -1,38 +1,38 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { activitiesService } from "@/services/api/activitiesService";
-import Modal from "@/components/molecules/Modal";
-import Button from "@/components/atoms/Button";
-import FormField from "@/components/molecules/FormField";
 import Select from "@/components/atoms/Select";
+import Button from "@/components/atoms/Button";
+import Modal from "@/components/molecules/Modal";
+import FormField from "@/components/molecules/FormField";
 
 const ActivityModal = ({ isOpen, onClose, activity, contacts, deals, onActivitySaved }) => {
-  const [formData, setFormData] = useState({
-    type: "Task",
-    subject: "",
-    description: "",
-    contactId: "",
-    dealId: "",
-    dueDate: "",
-    completed: false
+const [formData, setFormData] = useState({
+    type_c: "Task",
+    subject_c: "",
+    description_c: "",
+    contactId_c: "",
+    dealId_c: "",
+    dueDate_c: "",
+    completed_c: false
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
   const activityTypes = ["Call", "Email", "Meeting", "Task", "Note"];
 
-  useEffect(() => {
+useEffect(() => {
     if (activity) {
-      const dueDate = activity.dueDate ? new Date(activity.dueDate) : new Date();
+      const dueDate = activity.dueDate_c ? new Date(activity.dueDate_c) : new Date();
       const dateString = dueDate.toISOString().slice(0, 16);
       
       setFormData({
-        type: activity.type || "Task",
-        subject: activity.subject || "",
-        description: activity.description || "",
-        contactId: activity.contactId?.toString() || "",
-        dealId: activity.dealId?.toString() || "",
-        dueDate: dateString,
-        completed: activity.completed || false
+        type_c: activity.type_c || "Task",
+        subject_c: activity.subject_c || "",
+        description_c: activity.description_c || "",
+        contactId_c: activity.contactId_c?.Id?.toString() || activity.contactId_c?.toString() || "",
+        dealId_c: activity.dealId_c?.Id?.toString() || activity.dealId_c?.toString() || "",
+        dueDate_c: dateString,
+        completed_c: activity.completed_c || false
       });
     } else {
       const defaultDate = new Date();
@@ -40,34 +40,33 @@ const ActivityModal = ({ isOpen, onClose, activity, contacts, deals, onActivityS
       const dateString = defaultDate.toISOString().slice(0, 16);
       
       setFormData({
-        type: "Task",
-        subject: "",
-        description: "",
-        contactId: "",
-        dealId: "",
-        dueDate: dateString,
-        completed: false
+        type_c: "Task",
+        subject_c: "",
+        description_c: "",
+        contactId_c: "",
+        dealId_c: "",
+        dueDate_c: dateString,
+        completed_c: false
       });
     }
     setErrors({});
   }, [activity, isOpen]);
 
-  const validateForm = () => {
+const validateForm = () => {
     const newErrors = {};
     
-    if (!formData.subject.trim()) {
-      newErrors.subject = "Subject is required";
+    if (!formData.subject_c.trim()) {
+      newErrors.subject_c = "Subject is required";
     }
-    if (!formData.description.trim()) {
-      newErrors.description = "Description is required";
+    if (!formData.description_c.trim()) {
+      newErrors.description_c = "Description is required";
     }
-    if (!formData.dueDate) {
-      newErrors.dueDate = "Due date is required";
+    if (!formData.dueDate_c) {
+      newErrors.dueDate_c = "Due date is required";
     }
-    if (!formData.type) {
-      newErrors.type = "Activity type is required";
+    if (!formData.type_c) {
+      newErrors.type_c = "Activity type is required";
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -79,20 +78,25 @@ const ActivityModal = ({ isOpen, onClose, activity, contacts, deals, onActivityS
     setLoading(true);
     try {
       const activityData = {
-        ...formData,
-        contactId: formData.contactId ? parseInt(formData.contactId) : null,
-        dealId: formData.dealId ? parseInt(formData.dealId) : null,
-        dueDate: new Date(formData.dueDate).toISOString()
+type_c: formData.type_c,
+        subject_c: formData.subject_c,
+        description_c: formData.description_c,
+        contactId_c: formData.contactId_c ? parseInt(formData.contactId_c) : null,
+        dealId_c: formData.dealId_c ? parseInt(formData.dealId_c) : null,
+        dueDate_c: new Date(formData.dueDate_c).toISOString(),
+        completed_c: formData.completed_c
       };
 
-      let savedActivity;
+let savedActivity;
       if (activity) {
         savedActivity = await activitiesService.update(activity.Id, activityData);
       } else {
         savedActivity = await activitiesService.create(activityData);
       }
 
-      onActivitySaved(savedActivity);
+      if (savedActivity) {
+        onActivitySaved(savedActivity);
+      }
     } catch (err) {
       console.error("Error saving activity:", err);
       setErrors({ general: "Failed to save activity. Please try again." });
@@ -125,17 +129,17 @@ const ActivityModal = ({ isOpen, onClose, activity, contacts, deals, onActivityS
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             label="Activity Type"
-            error={errors.type}
+            error={errors.type_c}
             required
           >
             <Select
-              name="type"
-              value={formData.type}
+              name="type_c"
+              value={formData.type_c}
               onChange={handleChange}
-              error={errors.type}
+              error={errors.type_c}
             >
               {activityTypes.map(type => (
                 <option key={type} value={type}>
@@ -147,21 +151,21 @@ const ActivityModal = ({ isOpen, onClose, activity, contacts, deals, onActivityS
 
           <FormField
             label="Due Date & Time"
-            name="dueDate"
+            name="dueDate_c"
             type="datetime-local"
-            value={formData.dueDate}
+            value={formData.dueDate_c}
             onChange={handleChange}
-            error={errors.dueDate}
+            error={errors.dueDate_c}
             required
           />
         </div>
 
         <FormField
           label="Subject"
-          name="subject"
-          value={formData.subject}
+          name="subject_c"
+          value={formData.subject_c}
           onChange={handleChange}
-          error={errors.subject}
+          error={errors.subject_c}
           required
           placeholder="Brief description of the activity"
         />
@@ -169,29 +173,29 @@ const ActivityModal = ({ isOpen, onClose, activity, contacts, deals, onActivityS
         <FormField
           label="Description"
           type="textarea"
-          name="description"
-          value={formData.description}
+          name="description_c"
+          value={formData.description_c}
           onChange={handleChange}
           placeholder="Detailed description of what needs to be done..."
-          error={errors.description}
+          error={errors.description_c}
           required
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormField
+<FormField
             label="Related Contact"
-            error={errors.contactId}
+            error={errors.contactId_c}
           >
             <Select
-              name="contactId"
-              value={formData.contactId}
+              name="contactId_c"
+              value={formData.contactId_c}
               onChange={handleChange}
-              error={errors.contactId}
+              error={errors.contactId_c}
             >
               <option value="">Select a contact (optional)</option>
               {contacts.map(contact => (
                 <option key={contact.Id} value={contact.Id}>
-                  {contact.firstName} {contact.lastName}
+                  {contact.firstName_c} {contact.lastName_c}
                 </option>
               ))}
             </Select>
@@ -199,35 +203,35 @@ const ActivityModal = ({ isOpen, onClose, activity, contacts, deals, onActivityS
 
           <FormField
             label="Related Deal"
-            error={errors.dealId}
+            error={errors.dealId_c}
           >
             <Select
-              name="dealId"
-              value={formData.dealId}
+              name="dealId_c"
+              value={formData.dealId_c}
               onChange={handleChange}
-              error={errors.dealId}
+              error={errors.dealId_c}
             >
               <option value="">Select a deal (optional)</option>
               {deals.map(deal => (
                 <option key={deal.Id} value={deal.Id}>
-                  {deal.title}
+                  {deal.title_c}
                 </option>
               ))}
             </Select>
           </FormField>
         </div>
 
-        {activity && (
+{activity && (
           <div className="flex items-center">
             <input
               type="checkbox"
-              id="completed"
-              name="completed"
-              checked={formData.completed}
+              id="completed_c"
+              name="completed_c"
+              checked={formData.completed_c}
               onChange={handleChange}
               className="h-4 w-4 text-success-600 focus:ring-success-500 border-slate-300 rounded"
             />
-            <label htmlFor="completed" className="ml-2 text-sm text-slate-700">
+            <label htmlFor="completed_c" className="ml-2 text-sm text-slate-700">
               Mark as completed
             </label>
           </div>

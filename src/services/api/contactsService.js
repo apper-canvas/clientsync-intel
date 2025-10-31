@@ -1,183 +1,374 @@
-import contactsData from "@/services/mockData/contacts.json";
-
-let contacts = [...contactsData];
-
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+import { getApperClient } from "@/services/apperClient";
+import { toast } from "react-toastify";
 
 export const contactsService = {
   async getAll() {
-    await delay(300);
-    return [...contacts];
+    try {
+      const apperClient = getApperClient();
+      const response = await apperClient.fetchRecords('contact_c', {
+        fields: [
+          {"field": {"Name": "Id"}},
+          {"field": {"Name": "firstName_c"}},
+          {"field": {"Name": "lastName_c"}},
+          {"field": {"Name": "email_c"}},
+          {"field": {"Name": "phone_c"}},
+          {"field": {"Name": "title_c"}},
+          {"field": {"Name": "notes_c"}},
+          {"field": {"Name": "createdAt_c"}},
+          {"field": {"Name": "updatedAt_c"}},
+          {"field": {"Name": "companyId_c"}, "referenceField": {"field": {"Name": "name_c"}}}
+        ]
+      });
+      
+      if (!response.success) {
+        console.error(response.message);
+        toast.error(response.message);
+        return [];
+      }
+      
+      return response.data || [];
+    } catch (error) {
+      console.error("Error fetching contacts:", error);
+      toast.error("Failed to load contacts");
+      return [];
+    }
   },
 
   async getById(id) {
-    await delay(200);
-    const contact = contacts.find(c => c.Id === parseInt(id));
-    if (!contact) {
-      throw new Error("Contact not found");
+    try {
+      const apperClient = getApperClient();
+      const response = await apperClient.getRecordById('contact_c', parseInt(id), {
+        fields: [
+          {"field": {"Name": "Id"}},
+          {"field": {"Name": "firstName_c"}},
+          {"field": {"Name": "lastName_c"}},
+          {"field": {"Name": "email_c"}},
+          {"field": {"Name": "phone_c"}},
+          {"field": {"Name": "title_c"}},
+          {"field": {"Name": "notes_c"}},
+          {"field": {"Name": "createdAt_c"}},
+          {"field": {"Name": "updatedAt_c"}},
+          {"field": {"Name": "companyId_c"}, "referenceField": {"field": {"Name": "name_c"}}}
+        ]
+      });
+      
+      if (!response.success) {
+        console.error(response.message);
+        toast.error(response.message);
+        return null;
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching contact ${id}:`, error);
+      toast.error("Failed to load contact");
+      return null;
     }
-    return { ...contact };
   },
 
   async create(contactData) {
-    await delay(400);
-    const newContact = {
-      ...contactData,
-      Id: Math.max(...contacts.map(c => c.Id), 0) + 1,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    contacts.push(newContact);
-    return { ...newContact };
+    try {
+      const apperClient = getApperClient();
+      const params = {
+        records: [{
+          firstName_c: contactData.firstName_c,
+          lastName_c: contactData.lastName_c,
+          email_c: contactData.email_c,
+          phone_c: contactData.phone_c,
+          title_c: contactData.title_c,
+          notes_c: contactData.notes_c || "",
+          companyId_c: parseInt(contactData.companyId_c),
+          createdAt_c: new Date().toISOString(),
+          updatedAt_c: new Date().toISOString()
+        }]
+      };
+      
+      const response = await apperClient.createRecord('contact_c', params);
+      
+      if (!response.success) {
+        console.error(response.message);
+        toast.error(response.message);
+        return null;
+      }
+      
+      if (response.results) {
+        const failed = response.results.filter(r => !r.success);
+        if (failed.length > 0) {
+          console.error(`Failed to create contact:`, failed);
+          failed.forEach(record => {
+            if (record.message) toast.error(record.message);
+          });
+          return null;
+        }
+        return response.results[0].data;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error("Error creating contact:", error);
+      toast.error("Failed to create contact");
+      return null;
+    }
   },
 
   async update(id, contactData) {
-    await delay(350);
-    const index = contacts.findIndex(c => c.Id === parseInt(id));
-    if (index === -1) {
-      throw new Error("Contact not found");
+    try {
+      const apperClient = getApperClient();
+      const params = {
+        records: [{
+          Id: parseInt(id),
+          firstName_c: contactData.firstName_c,
+          lastName_c: contactData.lastName_c,
+          email_c: contactData.email_c,
+          phone_c: contactData.phone_c,
+          title_c: contactData.title_c,
+          notes_c: contactData.notes_c || "",
+          companyId_c: parseInt(contactData.companyId_c),
+          updatedAt_c: new Date().toISOString()
+        }]
+      };
+      
+      const response = await apperClient.updateRecord('contact_c', params);
+      
+      if (!response.success) {
+        console.error(response.message);
+        toast.error(response.message);
+        return null;
+      }
+      
+      if (response.results) {
+        const failed = response.results.filter(r => !r.success);
+        if (failed.length > 0) {
+          console.error(`Failed to update contact:`, failed);
+          failed.forEach(record => {
+            if (record.message) toast.error(record.message);
+          });
+          return null;
+        }
+        return response.results[0].data;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error("Error updating contact:", error);
+      toast.error("Failed to update contact");
+      return null;
     }
-    contacts[index] = {
-      ...contacts[index],
-      ...contactData,
-      Id: parseInt(id),
-      updatedAt: new Date().toISOString()
-    };
-    return { ...contacts[index] };
   },
 
   async delete(id) {
-    await delay(300);
-    const index = contacts.findIndex(c => c.Id === parseInt(id));
-    if (index === -1) {
-      throw new Error("Contact not found");
+    try {
+      const apperClient = getApperClient();
+      const params = { RecordIds: [parseInt(id)] };
+      
+      const response = await apperClient.deleteRecord('contact_c', params);
+      
+      if (!response.success) {
+        console.error(response.message);
+        toast.error(response.message);
+        return false;
+      }
+      
+      if (response.results) {
+        const failed = response.results.filter(r => !r.success);
+        if (failed.length > 0) {
+          console.error(`Failed to delete contact:`, failed);
+          failed.forEach(record => {
+            if (record.message) toast.error(record.message);
+          });
+          return false;
+        }
+      }
+      
+      return true;
+    } catch (error) {
+      console.error("Error deleting contact:", error);
+      toast.error("Failed to delete contact");
+      return false;
     }
-    contacts.splice(index, 1);
-    return true;
   },
 
   async searchContacts(query) {
-    await delay(250);
-    if (!query) return [...contacts];
-    
-    const searchTerm = query.toLowerCase();
-    return contacts.filter(contact =>
-      contact.firstName.toLowerCase().includes(searchTerm) ||
-      contact.lastName.toLowerCase().includes(searchTerm) ||
-      contact.email.toLowerCase().includes(searchTerm) ||
-      contact.title.toLowerCase().includes(searchTerm)
-    );
+    try {
+      const apperClient = getApperClient();
+      const response = await apperClient.fetchRecords('contact_c', {
+        fields: [
+          {"field": {"Name": "Id"}},
+          {"field": {"Name": "firstName_c"}},
+          {"field": {"Name": "lastName_c"}},
+          {"field": {"Name": "email_c"}},
+          {"field": {"Name": "phone_c"}},
+          {"field": {"Name": "title_c"}},
+          {"field": {"Name": "notes_c"}},
+          {"field": {"Name": "createdAt_c"}},
+          {"field": {"Name": "updatedAt_c"}},
+          {"field": {"Name": "companyId_c"}, "referenceField": {"field": {"Name": "name_c"}}}
+        ],
+        whereGroups: query ? [{
+          operator: "OR",
+          subGroups: [
+            {
+              conditions: [
+                {
+                  fieldName: "firstName_c",
+                  operator: "Contains",
+                  values: [query]
+                },
+                {
+                  fieldName: "lastName_c",
+                  operator: "Contains",
+                  values: [query]
+                },
+                {
+                  fieldName: "email_c",
+                  operator: "Contains",
+                  values: [query]
+                },
+                {
+                  fieldName: "title_c",
+                  operator: "Contains",
+                  values: [query]
+                }
+              ],
+              operator: "OR"
+            }
+          ]
+        }] : []
+      });
+      
+      if (!response.success) {
+        console.error(response.message);
+        return [];
+      }
+      
+      return response.data || [];
+    } catch (error) {
+      console.error("Error searching contacts:", error);
+      return [];
+    }
   },
 
   async bulkUpdate(contactIds, updateData) {
-    await delay(500);
-    const updated = [];
-    const errors = [];
-
-    for (const id of contactIds) {
-      try {
-        const index = contacts.findIndex(c => c.Id === parseInt(id));
-        if (index === -1) {
-          errors.push({ id, error: "Contact not found" });
-          continue;
-        }
-
-        contacts[index] = {
-          ...contacts[index],
-          ...updateData,
-          Id: parseInt(id),
-          updatedAt: new Date().toISOString()
-        };
-        updated.push({ ...contacts[index] });
-      } catch (err) {
-        errors.push({ id, error: err.message });
+    try {
+      const apperClient = getApperClient();
+      const records = contactIds.map(id => ({
+        Id: parseInt(id),
+        ...updateData,
+        updatedAt_c: new Date().toISOString()
+      }));
+      
+      const response = await apperClient.updateRecord('contact_c', { records });
+      
+      if (!response.success) {
+        console.error(response.message);
+        toast.error(response.message);
+        return { updated: [], errors: [], successCount: 0, errorCount: contactIds.length };
       }
+      
+      const successful = response.results?.filter(r => r.success) || [];
+      const failed = response.results?.filter(r => !r.success) || [];
+      
+      if (failed.length > 0) {
+        console.error(`Failed to update ${failed.length} contacts:`, failed);
+        failed.forEach(record => {
+          if (record.message) toast.error(record.message);
+        });
+      }
+      
+      return {
+        updated: successful.map(r => r.data),
+        errors: failed,
+        successCount: successful.length,
+        errorCount: failed.length
+      };
+    } catch (error) {
+      console.error("Error bulk updating contacts:", error);
+      toast.error("Failed to update contacts");
+      return { updated: [], errors: [], successCount: 0, errorCount: contactIds.length };
     }
-
-    return {
-      updated,
-      errors,
-      successCount: updated.length,
-      errorCount: errors.length
-    };
   },
 
   async bulkDelete(contactIds) {
-    await delay(600);
-    const deleted = [];
-    const errors = [];
-
-    // Sort IDs in descending order to avoid index shifting issues
-    const sortedIds = contactIds.sort((a, b) => b - a);
-
-    for (const id of sortedIds) {
-      try {
-        const index = contacts.findIndex(c => c.Id === parseInt(id));
-        if (index === -1) {
-          errors.push({ id, error: "Contact not found" });
-          continue;
-        }
-
-        const deletedContact = contacts.splice(index, 1)[0];
-        deleted.push(deletedContact);
-      } catch (err) {
-        errors.push({ id, error: err.message });
+    try {
+      const apperClient = getApperClient();
+      const params = { RecordIds: contactIds.map(id => parseInt(id)) };
+      
+      const response = await apperClient.deleteRecord('contact_c', params);
+      
+      if (!response.success) {
+        console.error(response.message);
+        toast.error(response.message);
+        return { deleted: [], errors: [], successCount: 0, errorCount: contactIds.length };
       }
+      
+      const successful = response.results?.filter(r => r.success) || [];
+      const failed = response.results?.filter(r => !r.success) || [];
+      
+      if (failed.length > 0) {
+        console.error(`Failed to delete ${failed.length} contacts:`, failed);
+        failed.forEach(record => {
+          if (record.message) toast.error(record.message);
+        });
+      }
+      
+      return {
+        deleted: successful,
+        errors: failed,
+        successCount: successful.length,
+        errorCount: failed.length
+      };
+    } catch (error) {
+      console.error("Error bulk deleting contacts:", error);
+      toast.error("Failed to delete contacts");
+      return { deleted: [], errors: [], successCount: 0, errorCount: contactIds.length };
     }
-
-    return {
-      deleted,
-      errors,
-      successCount: deleted.length,
-      errorCount: errors.length
-    };
   },
 
   async bulkExport(contactsData) {
-    await delay(400);
-    
-    // Create CSV content
-    const headers = [
-      'ID', 'First Name', 'Last Name', 'Email', 'Phone', 
-      'Title', 'Company', 'Status', 'Created At', 'Updated At'
-    ];
-    
-    const csvRows = [
-      headers.join(','),
-      ...contactsData.map(contact => [
-        contact.Id,
-        `"${contact.firstName}"`,
-        `"${contact.lastName}"`,
-        `"${contact.email}"`,
-        `"${contact.phone || ''}"`,
-        `"${contact.title || ''}"`,
-        `"${contact.companyName || ''}"`,
-        `"${contact.status || 'Active'}"`,
-        `"${contact.createdAt || ''}"`,
-        `"${contact.updatedAt || ''}"`
-      ].join(','))
-    ];
-    
-    const csvContent = csvRows.join('\n');
-    
-    // Create and trigger download
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    
-    link.setAttribute('href', url);
-    link.setAttribute('download', `contacts_export_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    
-    return {
-      success: true,
-      filename: `contacts_export_${new Date().toISOString().split('T')[0]}.csv`,
-      count: contactsData.length
-    };
+    try {
+      const headers = [
+        'ID', 'First Name', 'Last Name', 'Email', 'Phone', 
+        'Title', 'Company', 'Created At', 'Updated At'
+      ];
+      
+      const csvRows = [
+        headers.join(','),
+        ...contactsData.map(contact => [
+          contact.Id,
+          `"${contact.firstName_c || ''}"`,
+          `"${contact.lastName_c || ''}"`,
+          `"${contact.email_c || ''}"`,
+          `"${contact.phone_c || ''}"`,
+          `"${contact.title_c || ''}"`,
+          `"${contact.companyId_c?.Name || ''}"`,
+          `"${contact.createdAt_c || ''}"`,
+          `"${contact.updatedAt_c || ''}"`
+        ].join(','))
+      ];
+      
+      const csvContent = csvRows.join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      
+      link.setAttribute('href', url);
+      link.setAttribute('download', `contacts_export_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      return {
+        success: true,
+        filename: `contacts_export_${new Date().toISOString().split('T')[0]}.csv`,
+        count: contactsData.length
+      };
+    } catch (error) {
+      console.error("Error exporting contacts:", error);
+      toast.error("Failed to export contacts");
+      return { success: false, filename: '', count: 0 };
+    }
   }
 };

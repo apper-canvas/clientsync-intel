@@ -1,76 +1,75 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { dealsService } from "@/services/api/dealsService";
-import Modal from "@/components/molecules/Modal";
-import Button from "@/components/atoms/Button";
-import FormField from "@/components/molecules/FormField";
 import Select from "@/components/atoms/Select";
+import Button from "@/components/atoms/Button";
+import Modal from "@/components/molecules/Modal";
+import FormField from "@/components/molecules/FormField";
 
 const DealModal = ({ isOpen, onClose, deal, contacts, companies, onDealSaved }) => {
-  const [formData, setFormData] = useState({
-    title: "",
-    value: "",
-    stage: "Lead",
-    contactId: "",
-    companyId: "",
-    probability: "",
-    closeDate: "",
-    notes: ""
+const [formData, setFormData] = useState({
+    title_c: "",
+    value_c: "",
+    stage_c: "Lead",
+    contactId_c: "",
+    companyId_c: "",
+    probability_c: "",
+    closeDate_c: "",
+    notes_c: ""
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
   const stages = ["Lead", "Qualified", "Proposal", "Negotiation", "Closed Won", "Closed Lost"];
 
-  useEffect(() => {
+useEffect(() => {
     if (deal) {
       setFormData({
-        title: deal.title || "",
-        value: deal.value?.toString() || "",
-        stage: deal.stage || "Lead",
-        contactId: deal.contactId?.toString() || "",
-        companyId: deal.companyId?.toString() || "",
-        probability: deal.probability?.toString() || "",
-        closeDate: deal.closeDate ? deal.closeDate.split('T')[0] : "",
-        notes: deal.notes || ""
+        title_c: deal.title_c || "",
+        value_c: deal.value_c?.toString() || "",
+        stage_c: deal.stage_c || "Lead",
+        contactId_c: deal.contactId_c?.Id?.toString() || deal.contactId_c?.toString() || "",
+        companyId_c: deal.companyId_c?.Id?.toString() || deal.companyId_c?.toString() || "",
+        probability_c: deal.probability_c?.toString() || "",
+        closeDate_c: deal.closeDate_c ? deal.closeDate_c.split('T')[0] : "",
+        notes_c: deal.notes_c || ""
       });
     } else {
       setFormData({
-        title: "",
-        value: "",
-        stage: "Lead",
-        contactId: "",
-        companyId: "",
-        probability: "",
-        closeDate: "",
-        notes: ""
+        title_c: "",
+        value_c: "",
+        stage_c: "Lead",
+        contactId_c: "",
+        companyId_c: "",
+        probability_c: "",
+        closeDate_c: "",
+        notes_c: ""
       });
     }
     setErrors({});
   }, [deal, isOpen]);
 
-  const validateForm = () => {
+const validateForm = () => {
     const newErrors = {};
     
-    if (!formData.title.trim()) {
-      newErrors.title = "Deal title is required";
+    if (!formData.title_c.trim()) {
+      newErrors.title_c = "Deal title is required";
     }
-    if (!formData.value || isNaN(formData.value) || parseFloat(formData.value) <= 0) {
-      newErrors.value = "Please enter a valid deal value";
+    if (!formData.value_c || isNaN(formData.value_c) || parseFloat(formData.value_c) <= 0) {
+      newErrors.value_c = "Please enter a valid deal value";
     }
-    if (!formData.contactId) {
-      newErrors.contactId = "Contact is required";
+    if (!formData.contactId_c) {
+      newErrors.contactId_c = "Contact is required";
     }
-    if (!formData.companyId) {
-      newErrors.companyId = "Company is required";
+    if (!formData.companyId_c) {
+      newErrors.companyId_c = "Company is required";
     }
-    if (!formData.probability || isNaN(formData.probability) || 
-        parseInt(formData.probability) < 0 || parseInt(formData.probability) > 100) {
-      newErrors.probability = "Probability must be between 0 and 100";
+    if (!formData.probability_c || isNaN(formData.probability_c) || 
+        parseInt(formData.probability_c) < 0 || parseInt(formData.probability_c) > 100) {
+      newErrors.probability_c = "Probability must be between 0 and 100";
     }
-    if (!formData.closeDate) {
-      newErrors.closeDate = "Expected close date is required";
+    if (!formData.closeDate_c) {
+      newErrors.closeDate_c = "Expected close date is required";
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -81,23 +80,27 @@ const DealModal = ({ isOpen, onClose, deal, contacts, companies, onDealSaved }) 
 
     setLoading(true);
     try {
-      const dealData = {
-        ...formData,
-        value: parseFloat(formData.value),
-        contactId: parseInt(formData.contactId),
-        companyId: parseInt(formData.companyId),
-        probability: parseInt(formData.probability),
-        closeDate: new Date(formData.closeDate).toISOString()
+const dealData = {
+        title_c: formData.title_c,
+        value_c: parseFloat(formData.value_c),
+        stage_c: formData.stage_c,
+        contactId_c: parseInt(formData.contactId_c),
+        companyId_c: parseInt(formData.companyId_c),
+        probability_c: parseInt(formData.probability_c),
+        closeDate_c: formData.closeDate_c,
+        notes_c: formData.notes_c
       };
 
-      let savedDeal;
+let savedDeal;
       if (deal) {
         savedDeal = await dealsService.update(deal.Id, dealData);
       } else {
         savedDeal = await dealsService.create(dealData);
       }
 
-      onDealSaved(savedDeal);
+      if (savedDeal) {
+        onDealSaved(savedDeal);
+      }
     } catch (err) {
       console.error("Error saving deal:", err);
       setErrors({ general: "Failed to save deal. Please try again." });
@@ -115,8 +118,11 @@ const DealModal = ({ isOpen, onClose, deal, contacts, companies, onDealSaved }) 
   };
 
   // Filter contacts based on selected company
-  const filteredContacts = formData.companyId ? 
-    contacts.filter(contact => contact.companyId === parseInt(formData.companyId)) :
+const filteredContacts = formData.companyId_c ? 
+    contacts.filter(contact => {
+      const contactCompanyId = contact.companyId_c?.Id || contact.companyId_c;
+      return contactCompanyId === parseInt(formData.companyId_c);
+    }) :
     contacts;
 
   return (
@@ -133,24 +139,24 @@ const DealModal = ({ isOpen, onClose, deal, contacts, companies, onDealSaved }) 
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             label="Deal Title"
-            name="title"
-            value={formData.title}
+            name="title_c"
+            value={formData.title_c}
             onChange={handleChange}
-            error={errors.title}
+            error={errors.title_c}
             required
             placeholder="Enter deal title"
           />
 
           <FormField
             label="Deal Value ($)"
-            name="value"
+            name="value_c"
             type="number"
-            value={formData.value}
+            value={formData.value_c}
             onChange={handleChange}
-            error={errors.value}
+            error={errors.value_c}
             required
             placeholder="0"
             min="0"
@@ -161,14 +167,14 @@ const DealModal = ({ isOpen, onClose, deal, contacts, companies, onDealSaved }) 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             label="Stage"
-            error={errors.stage}
+            error={errors.stage_c}
             required
           >
             <Select
-              name="stage"
-              value={formData.stage}
+              name="stage_c"
+              value={formData.stage_c}
               onChange={handleChange}
-              error={errors.stage}
+              error={errors.stage_c}
             >
               {stages.map(stage => (
                 <option key={stage} value={stage}>
@@ -180,11 +186,11 @@ const DealModal = ({ isOpen, onClose, deal, contacts, companies, onDealSaved }) 
 
           <FormField
             label="Probability (%)"
-            name="probability"
+            name="probability_c"
             type="number"
-            value={formData.probability}
+            value={formData.probability_c}
             onChange={handleChange}
-            error={errors.probability}
+            error={errors.probability_c}
             required
             placeholder="0"
             min="0"
@@ -195,19 +201,19 @@ const DealModal = ({ isOpen, onClose, deal, contacts, companies, onDealSaved }) 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             label="Company"
-            error={errors.companyId}
+            error={errors.companyId_c}
             required
           >
             <Select
-              name="companyId"
-              value={formData.companyId}
+              name="companyId_c"
+              value={formData.companyId_c}
               onChange={handleChange}
-              error={errors.companyId}
+              error={errors.companyId_c}
             >
               <option value="">Select a company</option>
               {companies.map(company => (
                 <option key={company.Id} value={company.Id}>
-                  {company.name}
+                  {company.name_c}
                 </option>
               ))}
             </Select>
@@ -215,43 +221,43 @@ const DealModal = ({ isOpen, onClose, deal, contacts, companies, onDealSaved }) 
 
           <FormField
             label="Primary Contact"
-            error={errors.contactId}
+            error={errors.contactId_c}
             required
           >
             <Select
-              name="contactId"
-              value={formData.contactId}
+              name="contactId_c"
+              value={formData.contactId_c}
               onChange={handleChange}
-              error={errors.contactId}
+              error={errors.contactId_c}
             >
               <option value="">Select a contact</option>
               {filteredContacts.map(contact => (
                 <option key={contact.Id} value={contact.Id}>
-                  {contact.firstName} {contact.lastName}
+                  {contact.firstName_c} {contact.lastName_c}
                 </option>
               ))}
             </Select>
           </FormField>
         </div>
 
-        <FormField
+<FormField
           label="Expected Close Date"
-          name="closeDate"
+          name="closeDate_c"
           type="date"
-          value={formData.closeDate}
+          value={formData.closeDate_c}
           onChange={handleChange}
-          error={errors.closeDate}
+          error={errors.closeDate_c}
           required
         />
 
-        <FormField
+<FormField
           label="Notes"
           type="textarea"
-          name="notes"
-          value={formData.notes}
+          name="notes_c"
+          value={formData.notes_c}
           onChange={handleChange}
           placeholder="Additional notes about this deal..."
-          error={errors.notes}
+          error={errors.notes_c}
         />
 
         <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">

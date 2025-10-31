@@ -6,65 +6,65 @@ import FormField from "@/components/molecules/FormField";
 import Select from "@/components/atoms/Select";
 
 const ContactModal = ({ isOpen, onClose, contact, companies, onContactSaved }) => {
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    companyId: "",
-    title: "",
-    notes: ""
+const [formData, setFormData] = useState({
+    firstName_c: "",
+    lastName_c: "",
+    email_c: "",
+    phone_c: "",
+    companyId_c: "",
+    title_c: "",
+    notes_c: ""
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    if (contact) {
+if (contact) {
       setFormData({
-        firstName: contact.firstName || "",
-        lastName: contact.lastName || "",
-        email: contact.email || "",
-        phone: contact.phone || "",
-        companyId: contact.companyId?.toString() || "",
-        title: contact.title || "",
-        notes: contact.notes || ""
+        firstName_c: contact.firstName_c || "",
+        lastName_c: contact.lastName_c || "",
+        email_c: contact.email_c || "",
+        phone_c: contact.phone_c || "",
+        companyId_c: contact.companyId_c?.Id?.toString() || contact.companyId_c?.toString() || "",
+        title_c: contact.title_c || "",
+        notes_c: contact.notes_c || ""
       });
     } else {
       setFormData({
-        firstName: "",
-        lastName: "",
-        email: "",
-        phone: "",
-        companyId: "",
-        title: "",
-        notes: ""
+        firstName_c: "",
+        lastName_c: "",
+        email_c: "",
+        phone_c: "",
+        companyId_c: "",
+        title_c: "",
+        notes_c: ""
       });
     }
     setErrors({});
   }, [contact, isOpen]);
 
-  const validateForm = () => {
+const validateForm = () => {
     const newErrors = {};
     
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = "First name is required";
+    if (!formData.firstName_c.trim()) {
+      newErrors.firstName_c = "First name is required";
     }
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = "Last name is required";
+    if (!formData.lastName_c.trim()) {
+      newErrors.lastName_c = "Last name is required";
     }
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email";
+    if (!formData.email_c.trim()) {
+      newErrors.email_c = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email_c)) {
+      newErrors.email_c = "Please enter a valid email";
     }
-    if (!formData.phone.trim()) {
-      newErrors.phone = "Phone number is required";
+    if (!formData.phone_c.trim()) {
+      newErrors.phone_c = "Phone number is required";
     }
-    if (!formData.companyId) {
-      newErrors.companyId = "Company is required";
+    if (!formData.companyId_c) {
+      newErrors.companyId_c = "Company is required";
     }
-    if (!formData.title.trim()) {
-      newErrors.title = "Job title is required";
+    if (!formData.title_c.trim()) {
+      newErrors.title_c = "Job title is required";
     }
 
     setErrors(newErrors);
@@ -77,9 +77,14 @@ const ContactModal = ({ isOpen, onClose, contact, companies, onContactSaved }) =
 
     setLoading(true);
     try {
-      const contactData = {
-        ...formData,
-        companyId: parseInt(formData.companyId)
+const contactData = {
+        firstName_c: formData.firstName_c,
+        lastName_c: formData.lastName_c,
+        email_c: formData.email_c,
+        phone_c: formData.phone_c,
+        companyId_c: parseInt(formData.companyId_c),
+        title_c: formData.title_c,
+        notes_c: formData.notes_c
       };
 
       let savedContact;
@@ -89,7 +94,9 @@ const ContactModal = ({ isOpen, onClose, contact, companies, onContactSaved }) =
         savedContact = await contactsService.create(contactData);
       }
 
-      onContactSaved(savedContact);
+      if (savedContact) {
+        onContactSaved(savedContact);
+      }
     } catch (err) {
       console.error("Error saving contact:", err);
       setErrors({ general: "Failed to save contact. Please try again." });
@@ -123,19 +130,19 @@ const ContactModal = ({ isOpen, onClose, contact, companies, onContactSaved }) =
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             label="First Name"
-            name="firstName"
-            value={formData.firstName}
+name="firstName_c"
+            value={formData.firstName_c}
             onChange={handleChange}
-            error={errors.firstName}
+            error={errors.firstName_c}
             required
           />
 
           <FormField
             label="Last Name"
-            name="lastName"
-            value={formData.lastName}
+            name="lastName_c"
+            value={formData.lastName_c}
             onChange={handleChange}
-            error={errors.lastName}
+            error={errors.lastName_c}
             required
           />
         </div>
@@ -143,20 +150,20 @@ const ContactModal = ({ isOpen, onClose, contact, companies, onContactSaved }) =
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             label="Email"
-            name="email"
+            name="email_c"
             type="email"
-            value={formData.email}
+            value={formData.email_c}
             onChange={handleChange}
-            error={errors.email}
+            error={errors.email_c}
             required
           />
 
           <FormField
             label="Phone"
-            name="phone"
-            value={formData.phone}
+            name="phone_c"
+            value={formData.phone_c}
             onChange={handleChange}
-            error={errors.phone}
+            error={errors.phone_c}
             required
           />
         </div>
@@ -164,14 +171,14 @@ const ContactModal = ({ isOpen, onClose, contact, companies, onContactSaved }) =
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             label="Company"
-            error={errors.companyId}
+            error={errors.companyId_c}
             required
           >
             <Select
-              name="companyId"
-              value={formData.companyId}
+              name="companyId_c"
+              value={formData.companyId_c}
               onChange={handleChange}
-              error={errors.companyId}
+              error={errors.companyId_c}
             >
               <option value="">Select a company</option>
               {companies.map(company => (
@@ -193,13 +200,13 @@ const ContactModal = ({ isOpen, onClose, contact, companies, onContactSaved }) =
         </div>
 
         <FormField
-          label="Notes"
+label="Notes"
           type="textarea"
-          name="notes"
-          value={formData.notes}
+          name="notes_c"
+          value={formData.notes_c}
           onChange={handleChange}
           placeholder="Additional notes about this contact..."
-          error={errors.notes}
+          error={errors.notes_c}
         />
 
         <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
